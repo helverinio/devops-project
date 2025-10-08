@@ -16,20 +16,16 @@ class BlacklistResource(Resource):
     def post(self):
         """Add an email to the global blacklist"""
         try:
-            # Get JSON data from request
             json_data = request.get_json()
             if not json_data:
                 return {'message': 'No input data provided'}, 400
             
-            # Validate input data
             schema = BlacklistEntrySchema()
             validated_data = schema.load(json_data)
             
-            # Get client IP address
             client_ip = request.environ.get('HTTP_X_FORWARDED_FOR', 
                                          request.environ.get('REMOTE_ADDR', '127.0.0.1'))
             
-            # Check if email already exists in blacklist
             existing_entry = BlacklistEntry.query.filter_by(email=validated_data['email']).first()
             if existing_entry:
                 return {
@@ -37,7 +33,6 @@ class BlacklistResource(Resource):
                     'email': validated_data['email']
                 }, 409
             
-            # Create new blacklist entry
             blacklist_entry = BlacklistEntry(
                 email=validated_data['email'],
                 app_uuid=validated_data['app_uuid'],
@@ -45,11 +40,9 @@ class BlacklistResource(Resource):
                 ip_address=client_ip
             )
             
-            # Save to database
             db.session.add(blacklist_entry)
             db.session.commit()
             
-            # Return success response
             response_schema = BlacklistResponseSchema()
             return response_schema.dump({
                 'message': 'Email successfully added to blacklist',
@@ -71,14 +64,11 @@ class BlacklistCheckResource(Resource):
     def get(self, email):
         """Check if an email is in the global blacklist"""
         try:
-            # Validate email format
             from app.schemas.blacklist import validate_email_format
             validate_email_format(email)
             
-            # Query blacklist entry
             blacklist_entry = BlacklistEntry.query.filter_by(email=email).first()
             
-            # Prepare response
             response_data = {
                 'email': email,
                 'is_blacklisted': blacklist_entry is not None,
