@@ -67,13 +67,4 @@ docker-compose --profile test run --rm test
 docker-compose exec blacklist-api python -m pytest tests/ -v
 ```
 
-### Run Tests Locally (Alternative)
-If you have Python dependencies installed locally:
-```bash
-# Install dependencies first
-pip install -r requirements.txt
-
-# Run tests
-python -m pytest tests/ -v
-```
 
