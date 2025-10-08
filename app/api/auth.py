@@ -13,7 +13,7 @@ class AuthResource(Resource):
         
         client_id = json_data['client_id']
         
-        # Generate token
+
         token = generate_token(identity=client_id)
         
         return {
