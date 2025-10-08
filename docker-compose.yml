@@ -16,6 +16,20 @@ services:
       - blacklist-network
     restart: unless-stopped
 
+  test:
+    build: .
+    environment:
+      - DATABASE_URL=postgresql://blacklist_user:blacklist_pass@postgres:5432/blacklist_db
+      - SECRET_KEY=test-secret-key
+      - JWT_SECRET_KEY=test-jwt-secret
+    depends_on:
+      - postgres
+    networks:
+      - blacklist-network
+    command: python -m pytest tests/ -v
+    profiles:
+      - test
+
   postgres:
     image: postgres:13
     environment:

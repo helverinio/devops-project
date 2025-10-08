@@ -55,12 +55,25 @@ docker-compose down
 
 ## Testing
 
-### Unit Tests
+### Run Tests in Docker (Recommended)
 ```bash
-# Run all tests
-python -m pytest tests/ -v
+# First, ensure services are running
+docker-compose up -d
 
-# Run simple test
-python tests/test_api.py
+# Run tests in Docker container
+docker-compose --profile test run --rm test
+
+# Or run tests with simple command
+docker-compose exec blacklist-api python -m pytest tests/ -v
+```
+
+### Run Tests Locally (Alternative)
+If you have Python dependencies installed locally:
+```bash
+# Install dependencies first
+pip install -r requirements.txt
+
+# Run tests
+python -m pytest tests/ -v
 ```
 
