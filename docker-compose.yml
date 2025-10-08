@@ -1,0 +1,39 @@
+services:
+  blacklist-api:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_HOST=0.0.0.0
+      - FLASK_PORT=5000
+      - FLASK_DEBUG=false
+      - DATABASE_URL=postgresql://blacklist_user:blacklist_pass@postgres:5432/blacklist_db
+      - SECRET_KEY=production-secret-key-change-me
+      - JWT_SECRET_KEY=production-jwt-secret-change-me
+    depends_on:
+      - postgres
+    networks:
+      - blacklist-network
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:13
+    environment:
+      - POSTGRES_DB=blacklist_db
+      - POSTGRES_USER=blacklist_user
+      - POSTGRES_PASSWORD=blacklist_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - blacklist-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  blacklist-network:
+    driver: bridge
