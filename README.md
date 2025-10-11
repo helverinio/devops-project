@@ -55,16 +55,90 @@ docker-compose down
 
 ## Testing
 
-### Run Tests in Docker (Recommended)
+Esta aplicación incluye un conjunto completo de tests unitarios que validan toda la funcionalidad de la API.
+
+### Ejecutar Tests con Docker (Recomendado)
+
 ```bash
-# First, ensure services are running
-docker-compose up -d
+# Ejecutar todos los tests
+docker-compose run --rm test
 
-# Run tests in Docker container
-docker-compose --profile test run --rm test
+# Ejecutar tests con más verbosidad
+docker-compose run --rm test python -m pytest tests/ -v
 
-# Or run tests with simple command
-docker-compose exec blacklist-api python -m pytest tests/ -v
+# Ejecutar un test específico
+docker-compose run --rm test python -m pytest tests/test_api.py::BlacklistAPITestCase::test_add_email_to_blacklist -v
 ```
+
+### Tests Incluidos
+
+Los tests cubren los siguientes escenarios:
+
+1. **Autenticación**
+   - ✅ Generación de tokens JWT
+   - ✅ Acceso no autorizado
+
+2. **Gestión de Blacklist**
+   - ✅ Agregar email a la blacklist
+   - ✅ Verificar email en blacklist
+   - ✅ Verificar email NO en blacklist
+   - ✅ Manejo de emails duplicados
+
+3. **Validaciones**
+   - ✅ Formato de email inválido
+   - ✅ Formato de UUID inválido
+
+### Resultados Esperados
+
+```
+========== test session starts ==========
+platform linux -- Python 3.13.8, pytest-7.4.3
+collected 8 items
+
+tests/test_api.py::BlacklistAPITestCase::test_add_duplicate_email PASSED     [ 12%]
+tests/test_api.py::BlacklistAPITestCase::test_add_email_to_blacklist PASSED  [ 25%]
+tests/test_api.py::BlacklistAPITestCase::test_auth_token_generation PASSED   [ 37%]
+tests/test_api.py::BlacklistAPITestCase::test_check_blacklisted_email PASSED [ 50%]
+tests/test_api.py::BlacklistAPITestCase::test_check_non_blacklisted_email PASSED [ 62%]
+tests/test_api.py::BlacklistAPITestCase::test_invalid_email_format PASSED    [ 75%]
+tests/test_api.py::BlacklistAPITestCase::test_invalid_uuid_format PASSED     [ 87%]
+tests/test_api.py::BlacklistAPITestCase::test_unauthorized_access PASSED     [100%]
+
+========== 8 passed in 1.37s ==========
+```
+
+### Usando Makefile
+
+```bash
+# Ejecutar tests con pytest
+make test
+
+# Ejecutar tests simples con unittest
+make test-simple
+```
+
+### Ejecutar Tests Localmente (Alternativo)
+
+Si prefieres ejecutar los tests localmente sin Docker:
+
+```bash
+# Instalar dependencias
+pip install -r requirements.txt
+pip install -r requirements-test.txt
+
+# Ejecutar tests
+python -m pytest tests/ -v
+
+# O usando unittest
+python -m unittest tests.test_api -v
+```
+
+### Coverage de Tests
+
+Los tests proporcionan cobertura completa de:
+- **API Endpoints**: `/auth/token`, `/blacklists`, `/blacklists/<email>`
+- **Validaciones**: Email format, UUID format, autenticación JWT
+- **Base de datos**: CRUD operations, manejo de duplicados
+- **Manejo de errores**: Responses HTTP apropiados
 
 
