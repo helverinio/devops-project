@@ -1,3 +1,4 @@
+import logging
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
@@ -9,9 +10,32 @@ db = SQLAlchemy()
 ma = Marshmallow()
 jwt = JWTManager()
 
+def configure_logging(app):
+    """Configure logging for the application"""
+    log_level = getattr(logging, app.config.get('LOG_LEVEL', 'INFO'))
+    log_format = app.config.get('LOG_FORMAT', '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    
+    # Configure root logger
+    logging.basicConfig(
+        level=log_level,
+        format=log_format,
+        handlers=[
+            logging.StreamHandler()  # Output to console/Docker logs
+        ]
+    )
+    
+    # Configure Flask logger
+    app.logger.setLevel(log_level)
+    
+    # Configure SQLAlchemy logger (optional - can be verbose)
+    logging.getLogger('sqlalchemy.engine').setLevel(logging.WARNING)
+
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+    
+    # Configure logging
+    configure_logging(app)
     
     # Initialize extensions
     db.init_app(app)
@@ -31,5 +55,7 @@ def create_app(config_class=Config):
     # Create database tables
     with app.app_context():
         db.create_all()
+        app.logger.info("Database tables created successfully")
     
+    app.logger.info("Blacklist API application initialized successfully")
     return app

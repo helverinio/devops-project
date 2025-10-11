@@ -7,9 +7,10 @@ services:
       - FLASK_HOST=0.0.0.0
       - FLASK_PORT=5000
       - FLASK_DEBUG=false
-      - DATABASE_URL=postgresql://blacklist_user:blacklist_pass@postgres:5432/blacklist_db
+      - DATABASE_URL=postgresql+psycopg://blacklist_user:blacklist_pass@postgres:5432/blacklist_db
       - SECRET_KEY=production-secret-key-change-me
       - JWT_SECRET_KEY=production-jwt-secret-change-me
+      - LOG_LEVEL=INFO
     depends_on:
       - postgres
     networks:
@@ -19,7 +20,7 @@ services:
   test:
     build: .
     environment:
-      - DATABASE_URL=postgresql://blacklist_user:blacklist_pass@postgres:5432/blacklist_db
+      - DATABASE_URL=postgresql+psycopg://blacklist_user:blacklist_pass@postgres:5432/blacklist_db
       - SECRET_KEY=test-secret-key
       - JWT_SECRET_KEY=test-jwt-secret
     depends_on:

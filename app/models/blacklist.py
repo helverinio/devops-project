@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from app import db
 
 class BlacklistEntry(db.Model):
@@ -9,7 +9,7 @@ class BlacklistEntry(db.Model):
     app_uuid = db.Column(db.String(36), nullable=False)
     blocked_reason = db.Column(db.String(255), nullable=True)
     ip_address = db.Column(db.String(45), nullable=False)  # Supports both IPv4 and IPv6
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     
     def __repr__(self):
         return f'<BlacklistEntry {self.email}>'

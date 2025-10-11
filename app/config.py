@@ -1,4 +1,5 @@
 import os
+import logging
 from datetime import timedelta
 
 class Config:
@@ -6,7 +7,7 @@ class Config:
     
     # Database configuration
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'postgresql://username:password@localhost:5432/blacklist_db'
+        'postgresql+psycopg://username:password@localhost:5432/blacklist_db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # JWT configuration
@@ -15,3 +16,7 @@ class Config:
     
     # Application configuration
     PROPAGATE_EXCEPTIONS = True
+    
+    # Logging configuration
+    LOG_LEVEL = os.environ.get('LOG_LEVEL') or 'INFO'
+    LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'

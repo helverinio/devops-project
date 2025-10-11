@@ -10,14 +10,19 @@ from app.schemas.blacklist import (
     BlacklistResponseSchema, 
     BlacklistCheckResponseSchema
 )
+import logging
+
+logger = logging.getLogger(__name__)
 
 class BlacklistResource(Resource):
     @jwt_required()
     def post(self):
         """Add an email to the global blacklist"""
         try:
+            logger.info("Received request to add email to blacklist")
             json_data = request.get_json()
             if not json_data:
+                logger.warning("No input data provided in request")
                 return {'message': 'No input data provided'}, 400
             
             schema = BlacklistEntrySchema()
@@ -28,6 +33,7 @@ class BlacklistResource(Resource):
             
             existing_entry = BlacklistEntry.query.filter_by(email=validated_data['email']).first()
             if existing_entry:
+                logger.warning(f"Email {validated_data['email']} is already in blacklist")
                 return {
                     'message': 'Email is already in the blacklist',
                     'email': validated_data['email']
@@ -43,6 +49,7 @@ class BlacklistResource(Resource):
             db.session.add(blacklist_entry)
             db.session.commit()
             
+            logger.info(f"Email {blacklist_entry.email} successfully added to blacklist")
             response_schema = BlacklistResponseSchema()
             return response_schema.dump({
                 'message': 'Email successfully added to blacklist',
@@ -51,17 +58,21 @@ class BlacklistResource(Resource):
             }), 201
             
         except ValidationError as err:
+            logger.error(f"Validation error in blacklist POST: {err.messages}")
             return {'message': 'Validation error', 'errors': err.messages}, 400
         except IntegrityError:
             db.session.rollback()
+            logger.warning("Attempted to add duplicate email to blacklist")
             return {'message': 'Email is already in the blacklist'}, 409
         except Exception as e:
             db.session.rollback()
+            logger.error(f"Unexpected error in blacklist POST: {str(e)}")
             return {'message': 'Internal server error'}, 500
 
 class BlacklistCheckResource(Resource):
     @jwt_required()
     def get(self, email):
+        logger.info(f"Checking blacklist status for email: {email}")
         """Check if an email is in the global blacklist"""
         try:
             from app.schemas.blacklist import validate_email_format
@@ -69,9 +80,12 @@ class BlacklistCheckResource(Resource):
             
             blacklist_entry = BlacklistEntry.query.filter_by(email=email).first()
             
+            is_blacklisted = blacklist_entry is not None
+            logger.info(f"Email {email} blacklist status: {'BLACKLISTED' if is_blacklisted else 'NOT BLACKLISTED'}")
+            
             response_data = {
                 'email': email,
-                'is_blacklisted': blacklist_entry is not None,
+                'is_blacklisted': is_blacklisted,
                 'blocked_reason': blacklist_entry.blocked_reason if blacklist_entry else None,
                 'created_at': blacklist_entry.created_at if blacklist_entry else None
             }
@@ -80,6 +94,8 @@ class BlacklistCheckResource(Resource):
             return response_schema.dump(response_data), 200
             
         except ValidationError as err:
+            logger.error(f"Validation error in blacklist check for {email}: {err.messages}")
             return {'message': 'Invalid email format', 'errors': err.messages}, 400
         except Exception as e:
+            logger.error(f"Unexpected error in blacklist check for {email}: {str(e)}")
             return {'message': 'Internal server error'}, 500

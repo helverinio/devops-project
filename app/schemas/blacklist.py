@@ -1,12 +1,17 @@
 from marshmallow import Schema, fields, validate, ValidationError
 from email_validator import validate_email, EmailNotValidError
 import uuid
+import logging
+logger = logging.getLogger(__name__)
 
 def validate_email_format(email):
     try:
-        validate_email(email)
-    except EmailNotValidError:
-        raise ValidationError('Invalid email format')
+        logger.info(f"Validating email format for: {email}")
+        validate_email(email, check_deliverability=False)
+        logger.info(f"Email {email} passed validation")
+    except EmailNotValidError as e:
+        logger.warning(f"Invalid email format: {email} - Error: {str(e)}")
+        raise ValidationError(f"Invalid email format: {str(e)}")
 
 def validate_uuid_format(uuid_string):
     try:
