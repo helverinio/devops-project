@@ -11,8 +11,8 @@ phases:
   build:
     commands:
       - echo "Applying init.sql to RDS..."
-      - PGPASSWORD="${DB_PASSWORD}" psql \
-          "host=${DB_HOST} port=5432 dbname=${DB_NAME} user=${DB_USER} sslmode=require" \
+      - PGPASSWORD="4dm1nD3v0p$" psql \
+          "host=awseb-e-mx5ssnkmw8-stack-awsebrdsdatabase-c5bgabep0wsg.cnuai2aowwmg.us-east-2.rds.amazonaws.com port=5432 dbname=blacklist_db user=adminDevops sslmode=require" \
           -v ON_ERROR_STOP=1 \
           -f scripts/init.sql
 
