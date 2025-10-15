@@ -1,0 +1,45 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Pre-build started on `date`
+      - echo Installing dependencies...
+      - pip install -r requirements.txt
+      - pip install -r requirements-test.txt
+
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Running tests...
+      - python -m pytest tests/ -v --tb=short
+      
+      - echo Building Docker image...
+      - IMAGE_TAG=${CODEBUILD_RESOLVED_SOURCE_VERSION:-latest}
+      - docker build -t blacklist-api:$IMAGE_TAG .
+      - docker tag blacklist-api:$IMAGE_TAG blacklist-api:latest
+      
+      - echo Saving Docker image as artifact...
+      - docker save blacklist-api:latest -o blacklist-api-image.tar
+      - gzip blacklist-api-image.tar
+
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Creating deployment package...
+      - echo "IMAGE_TAG=$IMAGE_TAG" > deployment-info.txt
+      - echo "BUILD_TIME=$(date)" >> deployment-info.txt
+      - echo "COMMIT_HASH=${CODEBUILD_RESOLVED_SOURCE_VERSION}" >> deployment-info.txt
+
+artifacts:
+  files:
+    - blacklist-api-image.tar.gz
+    - deployment-info.txt
+    - docker-compose.yml
+    - Dockerfile
+    - scripts/**/*
+  name: blacklist-api-build-artifacts
+
+cache:
+  paths:
+    - '/root/.cache/pip/**/*'
