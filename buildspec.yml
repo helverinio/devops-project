@@ -10,6 +10,12 @@ phases:
 
   build:
     commands:
+      - echo "Applying init.sql to RDS..."
+      - PGPASSWORD="${DB_PASSWORD}" psql \
+          "host=${DB_HOST} port=5432 dbname=${DB_NAME} user=${DB_USER} sslmode=require" \
+          -v ON_ERROR_STOP=1 \
+          -f scripts/init.sql
+
       - echo Build started on `date`
       - echo Running tests...
       - python -m pytest tests/ -v --tb=short
