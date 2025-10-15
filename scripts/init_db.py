@@ -4,7 +4,12 @@ Database initialization script for the blacklist microservice
 """
 import sys
 import os
+from dotenv import load_dotenv
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Load environment variables from .env file
+load_dotenv()
 
 from app import create_app, db
 from app.models.blacklist import BlacklistEntry

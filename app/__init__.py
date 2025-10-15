@@ -52,10 +52,15 @@ def create_app(config_class=Config):
     api.add_resource(BlacklistResource, '/blacklists')
     api.add_resource(BlacklistCheckResource, '/blacklists/<string:email>')
     
-    # Create database tables
-    with app.app_context():
-        db.create_all()
-        app.logger.info("Database tables created successfully")
+    # Health check endpoint
+    @app.route('/health')
+    def health_check():
+        return {'status': 'healthy', 'message': 'Blacklist API is running'}, 200
+    
+    # Create database tables (commented out - use init_db.py script instead)
+    # with app.app_context():
+    #     db.create_all()
+    #     app.logger.info("Database tables created successfully")
     
     app.logger.info("Blacklist API application initialized successfully")
     return app

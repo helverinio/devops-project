@@ -1,0 +1,42 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.13
+    commands:
+      - echo Install phase started on `date`
+      - python -m pip install --upgrade pip
+
+  pre_build:
+    commands:
+      - echo Pre-build started on `date`
+      - echo Installing dependencies...
+      - pip install -r requirements.txt
+      - pip install -r requirements-test.txt
+
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Running tests...
+      - python -m pytest tests/ -v --tb=short
+      
+      - echo Creating deployment package...
+      - zip -r blacklist-api-${CODEBUILD_RESOLVED_SOURCE_VERSION:-latest}.zip . -x ".git/*" "*.pyc" "__pycache__/*" ".venv/*" "*.tar.gz"
+
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - aws s3 cp blacklist-api-${CODEBUILD_RESOLVED_SOURCE_VERSION:-latest}.zip s3://${S3_BUCKET}/
+      - aws elasticbeanstalk create-application-version \
+          --application-name ${EB_APPLICATION_NAME} \
+          --version-label ${CODEBUILD_RESOLVED_SOURCE_VERSION:-latest} \
+          --source-bundle S3Bucket="${S3_BUCKET}",S3Key="blacklist-api-${CODEBUILD_RESOLVED_SOURCE_VERSION:-latest}.zip"
+      - aws elasticbeanstalk update-environment \
+          --application-name ${EB_APPLICATION_NAME} \
+          --environment-name ${EB_ENVIRONMENT_NAME} \
+          --version-label ${CODEBUILD_RESOLVED_SOURCE_VERSION:-latest}
+
+artifacts:
+  files:
+    - blacklist-api-*.zip
