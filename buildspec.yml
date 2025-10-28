@@ -1,19 +1,28 @@
 version: 0.2
 
 phases:
+  install:
+    runtime-versions:
+      python: 3.11
+    commands:
+      - echo Install phase started on `date`
+      - echo Installing system dependencies...
+      - apt-get update -qq
+      - apt-get install -y -qq libsqlite3-dev sqlite3 build-essential
+      - python -m pip install --upgrade pip
+
   pre_build:
     commands:
       - echo Pre-build started on `date`
-      - echo Installing dependencies...
+      - echo Verifying SQLite3 installation...
+      - python -c "import sqlite3; print('SQLite3 version:', sqlite3.sqlite_version)"
+      - echo Installing Python dependencies...
       - pip install -r requirements.txt
       - pip install -r requirements-test.txt
 
   build:
     commands:
       - echo Build started on `date`
-      - echo Installing system dependencies...
-      - apt-get update -qq
-      - apt-get install -y -qq libsqlite3-dev sqlite3 build-essential
       - echo Running tests...
       - python -m pytest tests/ -v --tb=short
       
