@@ -10,12 +10,6 @@ phases:
 
   build:
     commands:
-      - echo "Applying init.sql to RDS..."
-      - PGPASSWORD="4dm1nD3v0p$" psql \
-          "host=awseb-e-mx5ssnkmw8-stack-awsebrdsdatabase-c5bgabep0wsg.cnuai2aowwmg.us-east-2.rds.amazonaws.com port=5432 dbname=blacklist_db user=adminDevops sslmode=require" \
-          -v ON_ERROR_STOP=1 \
-          -f scripts/init.sql
-
       - echo Build started on `date`
       - echo Running tests...
       - python -m pytest tests/ -v --tb=short
